@@ -3,7 +3,7 @@
    ===================================================================== */
 import { $, $$, TODAY, addD, dOff, esc, fmtDate, iso, parse, uid } from '../core/utils.js';
 import { PR, PSTAT, ST } from '../core/constants.js';
-import { seed } from '../data/seed.js';
+import { seed, createTenantData } from '../data/seed.js';
 import { D, DEFAULT_PREFS, S, allTasks, canSee, commentsOf, logAct, me, mem, proj, save, task, tasksOf, visibleProjects } from '../core/store.js';
 import { fileType, fsize } from '../ui/helpers.js';
 import { effectiveDark } from '../core/theme.js';
@@ -1738,19 +1738,28 @@ A.setSearch = el => {
 
 /* workspace, account, prototype controls */
 A.switchWs = el => {
-  const w = D().workspaces.find(x => x.id === el.dataset.v);
+  const tid = el.dataset.v;
   S.ui.pop = null;
-  D().ws = { name: w.name, url: w.name.toLowerCase().replace(/[^a-z0-9]+/g, ''), c: w.c, brand: !!w.brand };
-  save();
-  go('home');
-  toast(`Switched to ${w.name}`);
+  if (S.tenants && S.tenants[tid]) {
+    S.session.tenantId = tid;
+    S.currentTenantId = tid;
+    const targetWs = S.tenants[tid].ws;
+    save();
+    go('home');
+    toast(`Switched workspace to ${targetWs.name}`);
+  } else {
+    const w = D().workspaces.find(x => x.id === tid);
+    if (w) {
+      D().ws = { name: w.name, url: w.name.toLowerCase().replace(/[^a-z0-9]+/g, ''), c: w.c, brand: !!w.brand };
+      save();
+      go('home');
+      toast(`Switched to ${w.name}`);
+    }
+  }
 };
 A.newWorkspace = () => {
   S.ui.pop = null;
-  S.ui.auth = 'onboarding';
-  S.ui.onb = 1;
-  S.ui.onbData.ws = '';
-  S.ui.onbData.url = '';
+  S.ui.auth = 'signup';
   render();
 };
 A.signOut = () => {
@@ -1758,9 +1767,19 @@ A.signOut = () => {
   S.ui.palette = null;
   S.ui.drawer = null;
   S.ui.modals = [];
-  S.ui.auth = 'login';
+  S.session = {
+    isAuthenticated: false,
+    user: null,
+    tenantId: 'w1',
+    isDemo: false,
+  };
+  S.ui.auth = null;
+  S.ui.route = 'landing';
   S.ui.errors = {};
+  location.hash = '#/';
+  save();
   render();
+  toast('Signed out successfully.');
 };
 A.shortcuts = () => {
   S.ui.pop = null;
@@ -2075,16 +2094,93 @@ A.toggleShowPw = () => {
   }
 };
 export const EMAIL_RE = /^\S+@\S+\.\S+$/;
-export function enterApp(msg) {
+export function enterApp(msg, targetRoute = null) {
   S.ui.auth = null;
   S.ui.errors = {};
-  go(S.prefs.home || 'home');
-  toast(msg);
+  const destination = targetRoute || S.prefs.home || 'home';
+  location.hash = '#/dashboard/' + destination;
+  go(destination);
+  if (msg) toast(msg);
 }
+
+A.goLanding = () => {
+  S.ui.auth = null;
+  S.ui.route = 'landing';
+  location.hash = '#/';
+  render();
+};
+
+A.setLandingTab = el => {
+  S.ui.landingTab = el.dataset.v;
+  render();
+};
+
+A.scrollSection = el => {
+  const targetId = el.dataset.v;
+  const target = document.getElementById(targetId);
+  if (target) {
+    target.scrollIntoView({ behavior: 'smooth' });
+  }
+};
+
+A.selectTenant = el => {
+  const tid = el.dataset.v;
+  if (!S.tenants[tid]) return;
+  S.ui.selectedTenant = tid;
+  S.currentTenantId = tid;
+  const tenant = S.tenants[tid];
+  const firstMember = tenant.members[0];
+  if (firstMember) S.ui.af.email = firstMember.email;
+  S.ui.auth = 'login';
+  location.hash = '#/login';
+  render();
+};
+
+A.tenantDemo = el => {
+  const tid = el.dataset.v || 'w1';
+  const tenant = S.tenants[tid] || S.tenants.w1;
+  const demoUser = tenant.members[0];
+  S.session = {
+    isAuthenticated: true,
+    user: demoUser,
+    tenantId: tid,
+    isDemo: true,
+  };
+  S.currentTenantId = tid;
+  tenant.me = demoUser.id;
+  save();
+  enterApp(`Welcome to the ${tenant.ws.name} sandbox demo!`, 'home');
+};
+
+A.demoLogin = () => {
+  const tenant = S.tenants.w1;
+  const demoUser = tenant.members.find(m => m.role === 'Owner') || tenant.members[0];
+  S.session = {
+    isAuthenticated: true,
+    user: demoUser,
+    tenantId: 'w1',
+    isDemo: true,
+  };
+  S.currentTenantId = 'w1';
+  tenant.me = demoUser.id;
+  save();
+  enterApp(`Welcome to the Besomoy Studio flagship demo!`, 'home');
+};
+
+A.quickFillLogin = el => {
+  const email = el.dataset.email;
+  const emInput = $('#l-email');
+  const pwInput = $('#l-pw');
+  if (emInput) emInput.value = email;
+  if (pwInput) pwInput.value = 'Password123!';
+  S.ui.af.email = email;
+  toast(`Selected ${el.dataset.role || 'user'}: ${email}`);
+};
+
 A.doLogin = () => {
   const e = (S.ui.errors = {});
-  const em = $('#l-email').value.trim(),
-    pw = $('#l-pw').value;
+  const em = $('#l-email')?.value.trim() || '',
+    pw = $('#l-pw')?.value || '';
   S.ui.af.email = em;
   if (!em) e.email = 'Enter your email address';
   else if (!EMAIL_RE.test(em)) e.email = 'Enter a valid email, like name@company.com';
@@ -2092,34 +2188,106 @@ A.doLogin = () => {
   if (Object.keys(e).length) {
     render();
     (e.email ? $('#l-email') : $('#l-pw'))?.focus();
-    if (!e.email) $('#l-pw').value = pw;
+    if (!e.email && $('#l-pw')) $('#l-pw').value = pw;
     return;
   }
-  loadingBtn('login-btn', 750, () => enterApp(`Signed in as ${em}`));
+  const activeTenantId = S.ui.selectedTenant || S.session?.tenantId || S.currentTenantId || 'w1';
+  const tenant = S.tenants[activeTenantId] || S.tenants.w1;
+  const user = tenant.members.find(m => m.email.toLowerCase() === em.toLowerCase()) || {
+    id: 'm_' + uid('m'),
+    name: em.split('@')[0],
+    email: em,
+    role: 'Member',
+    c: '#5A67D8',
+    status: 'active',
+  };
+
+  loadingBtn('login-btn', 650, () => {
+    S.session = {
+      isAuthenticated: true,
+      user,
+      tenantId: activeTenantId,
+      isDemo: false,
+    };
+    S.currentTenantId = activeTenantId;
+    tenant.me = user.id;
+    if (!tenant.members.some(m => m.id === user.id)) {
+      tenant.members.push(user);
+    }
+    save();
+
+    let route = 'home';
+    if (user.role === 'Member') route = 'mytasks';
+    else if (user.role === 'Guest') route = 'projects';
+
+    enterApp(`Signed in as ${user.name} (${user.role}) · ${tenant.ws.name}`, route);
+  });
 };
+
 A.socialAuth = el => {
   el.classList.add('is-loading');
-  setTimeout(() => enterApp(`Signed in with ${el.dataset.v}`), 800);
+  const activeTenantId = S.ui.selectedTenant || S.session?.tenantId || S.currentTenantId || 'w1';
+  const tenant = S.tenants[activeTenantId] || S.tenants.w1;
+  const user = tenant.members[0];
+  setTimeout(() => {
+    S.session = {
+      isAuthenticated: true,
+      user,
+      tenantId: activeTenantId,
+      isDemo: false,
+    };
+    S.currentTenantId = activeTenantId;
+    tenant.me = user.id;
+    save();
+    enterApp(`Signed in with ${el.dataset.v} (${tenant.ws.name})`, 'home');
+  }, 750);
 };
+
 A.doSignup = () => {
   const e = (S.ui.errors = {});
-  const nm = $('#s-name').value.trim(),
-    em = $('#s-email').value.trim(),
-    pw = $('#s-pw').value;
+  const orgName = $('#s-org')?.value.trim() || '';
+  const orgSlug = ($('#s-slug')?.value.trim() || orgName.toLowerCase().replace(/[^a-z0-9]+/g, '-')).replace(/^-+|-+$/g, '');
+  const nm = $('#s-name')?.value.trim() || '';
+  const em = $('#s-email')?.value.trim() || '';
+  const pw = $('#s-pw')?.value || '';
+
+  S.ui.af.org = orgName;
+  S.ui.af.slug = orgSlug;
   S.ui.af.name = nm;
   S.ui.af.email = em;
-  if (!nm) e.name = 'Enter your name';
+
+  if (!orgName) e.org = 'Enter your organization name';
+  if (!orgSlug) e.slug = 'Enter a workspace URL slug';
+  if (!nm) e.name = 'Enter your full name';
   if (!EMAIL_RE.test(em)) e.email = 'Enter a valid work email';
   if (pw.length < 10 || !/[0-9\W]/.test(pw)) e.pw = 'Use at least 10 characters, including a number or symbol';
+
   if (Object.keys(e).length) {
     render();
-    $('#s-email').value = em;
     return;
   }
+
   loadingBtn('signup-btn', 800, () => {
-    S.ui.auth = 'verify';
-    startResend();
-    render();
+    const newTenant = createTenantData({
+      name: orgName,
+      slug: orgSlug,
+      adminName: nm,
+      adminEmail: em,
+      plan: 'Starter Pro',
+      color: '#5A67D8',
+    });
+    const newTenantId = newTenant.ws.id;
+    S.tenants[newTenantId] = newTenant;
+    S.session = {
+      isAuthenticated: true,
+      user: newTenant.members[0],
+      tenantId: newTenantId,
+      isDemo: false,
+    };
+    S.currentTenantId = newTenantId;
+    S.ui.selectedTenant = newTenantId;
+    save();
+    enterApp(`Welcome to ${orgName}! Your organization and admin account are ready.`, 'home');
   });
 };
 export function startResend() {
@@ -2188,6 +2356,27 @@ A.onbSet = el => {
     if (t && !S.ui.onbData.projTouched) S.ui.onbData.proj = t.name === 'Website' ? 'Website Launch' : t.name;
   }
   render();
+};
+IN.signupOrg = el => {
+  const val = el.value;
+  S.ui.af.org = val;
+  const slugInput = $('#s-slug');
+  if (slugInput && !slugInput.dataset.touched) {
+    slugInput.value = val
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    S.ui.af.slug = slugInput.value;
+  }
+};
+IN.wsSearch = el => {
+  S.ui.wsSearch = el.value;
+  render();
+  const input = $('#ws-search-input');
+  if (input) {
+    input.focus();
+    input.setSelectionRange(input.value.length, input.value.length);
+  }
 };
 IN.onbWs = el => {
   const o = S.ui.onbData;

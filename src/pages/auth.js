@@ -1,54 +1,290 @@
 /* ---------------- AUTH ---------------- */
 import { esc } from '../core/utils.js';
 import { LOGO, ic } from '../core/icons.js';
-import { D, S } from '../core/store.js';
+import { S } from '../core/store.js';
 import { effectiveDark } from '../core/theme.js';
 import { TEMPLATES } from '../overlays/modals.js';
 import { strengthMeter } from './settings.js';
+import { TENANTS_CATALOG } from '../data/seed.js';
 
 export function authShell(inner, topRight = '') {
-  return `<div class="auth"><div class="auth-top"><span class="brand">${LOGO(22)}</span><div class="row">${topRight}<button class="ibtn" data-a="toggleDark" data-tip="Toggle theme" aria-label="Toggle theme">${ic(effectiveDark() ? 'sun' : 'moon', 16)}</button></div></div>
+  return `<div class="auth"><div class="auth-top"><a href="#/" class="brand" data-a="goLanding">${LOGO(22)}<span style="font-weight:600;font-size:var(--fs-md);margin-left:8px">Besomoy Studio</span></a><div class="row">${topRight}<button class="ibtn" data-a="toggleDark" data-tip="Toggle theme" aria-label="Toggle theme">${ic(effectiveDark() ? 'sun' : 'moon', 16)}</button></div></div>
     <div class="auth-c">${inner}</div>
-    <div class="auth-foot" style="padding:18px;font-size:12px" ><span class="faint">© 2026 Besomoy Studio · Terms · Privacy</span></div></div>`;
+    <div class="auth-foot" style="padding:18px;font-size:12px" ><span class="faint">© 2026 Besomoy Studio · Multi-Tenant SaaS Architecture · Terms · Privacy</span></div></div>`;
 }
 export const socialBtns = () => `<div class="social">
   <button class="btn btn-secondary btn-lg" data-a="socialAuth" data-v="Google"><svg width="16" height="16" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.3 0-9.7-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>Continue with Google</button>
-  <button class="btn btn-secondary btn-lg" data-a="socialAuth" data-v="Microsoft"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><rect width="6.4" height="6.4" fill="#F25022"/><rect x="7.6" width="6.4" height="6.4" fill="#7FBA00"/><rect y="7.6" width="6.4" height="6.4" fill="#00A4EF"/><rect x="7.6" y="7.6" width="6.4" height="6.4" fill="#FFB900"/></svg>Continue with Microsoft</button>
-  <button class="btn btn-secondary btn-lg" data-a="socialAuth" data-v="Apple">${ic('apple', 15)}Continue with Apple</button></div>`;
+  <button class="btn btn-secondary btn-lg" data-a="socialAuth" data-v="Microsoft"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><rect width="6.4" height="6.4" fill="#F25022"/><rect x="7.6" width="6.4" height="6.4" fill="#7FBA00"/><rect y="7.6" width="6.4" height="6.4" fill="#00A4EF"/><rect x="7.6" y="7.6" width="6.4" height="6.4" fill="#FFB900"/></svg>Continue with Microsoft</button></div>`;
 export const ferr = k => (S.ui.errors[k] ? `<span class="err" id="${k}-err">${ic('circle-alert', 12)}${S.ui.errors[k]}</span>` : '');
 export const icls = k => (S.ui.errors[k] ? 'is-error' : '');
+
+export function getAvailableTenants() {
+  const catalog = [...TENANTS_CATALOG];
+  for (const [id, data] of Object.entries(S.tenants || {})) {
+    if (!catalog.some(t => t.id === id) && data.ws) {
+      catalog.push({
+        id,
+        name: data.ws.name,
+        slug: data.ws.slug || data.ws.url || id,
+        tagline: 'Custom Organization',
+        plan: data.ws.plan || 'Custom',
+        membersCount: (data.members || []).length,
+        projectsCount: (data.projects || []).length,
+        color: data.ws.c || '#5A67D8',
+        icon: 'building-2',
+        recommended: false,
+        isDemo: false,
+        desc: `${data.ws.name} workspace with ${(data.projects || []).length} project(s).`,
+        defaultUser: data.members?.[0] ? { email: data.members[0].email, name: data.members[0].name, role: data.members[0].role } : null,
+      });
+    }
+  }
+  return catalog;
+}
+
+export function renderFindWorkspace() {
+  const e = S.ui.errors;
+  const q = (S.ui.wsSearch || '').trim().toLowerCase();
+  const allTenants = getAvailableTenants();
+  const filtered = q
+    ? allTenants.filter(t => t.name.toLowerCase().includes(q) || t.slug.toLowerCase().includes(q) || (t.plan && t.plan.toLowerCase().includes(q)))
+    : allTenants;
+
+  return `
+    <div class="auth-card auth-card-wide${S.ui.fx.auth ? ' fx-auth' : ''}">
+      <div style="display:flex;justify-content:center"><span class="ftype" style="--c:var(--accent);width:46px;height:46px;border-radius:12px">${ic('building-2', 22)}</span></div>
+      <h1>Find your workspace</h1>
+      <p class="sub">Search for your company organization or select from existing tenants.</p>
+
+      ${e.tenant ? `<div class="alert danger" role="alert">${ic('circle-alert', 15)}<span>${e.tenant}</span></div>` : ''}
+
+      <div class="field">
+        <label class="label" for="ws-search-input">Organization name or URL slug</label>
+        <div class="inwrap">
+          <input class="input input-lg" id="ws-search-input" type="search" placeholder="Search by name (e.g. Besomoy Studio, Acme Labs)..." value="${esc(S.ui.wsSearch || '')}" data-in="wsSearch" autofocus autocomplete="off">
+          <span style="position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--text-3);pointer-events:none">${ic('search', 16)}</span>
+        </div>
+      </div>
+
+      <div class="ws-list" role="list">
+        ${
+          filtered.length
+            ? filtered
+                .map(
+                  t => `
+          <button type="button" class="ws-item" data-a="selectTenant" data-v="${esc(t.id)}">
+            <div class="ws-item-avatar" style="background:${t.color}">
+              ${ic(t.icon || 'building-2', 18)}
+            </div>
+            <div class="grow" style="display:flex;flex-direction:column;gap:2px">
+              <div style="display:flex;align-items:center;gap:6px">
+                <b style="font-size:14px">${esc(t.name)}</b>
+                ${t.recommended ? `<span class="landing-badge" style="font-size:9.5px;padding:1px 6px">Flagship</span>` : ''}
+                <span class="faint" style="font-size:11px;background:var(--sunken);padding:1px 6px;border-radius:4px;border:1px solid var(--border)">${esc(t.plan)}</span>
+              </div>
+              <div class="faint" style="font-size:12px;font-family:var(--mono)">${esc(t.slug)}.besomoystudio.com · ${t.membersCount} members</div>
+            </div>
+            <span style="color:var(--text-3)">${ic('arrow-right', 15)}</span>
+          </button>
+        `,
+                )
+                .join('')
+            : `
+          <div class="panel" style="padding:16px;text-align:center;color:var(--text-2);font-size:13px">
+            No organization matching “${esc(q)}”.<br>
+            <button type="button" class="link" style="margin-top:6px;display:inline-block" data-a="auth" data-v="signup">Register a new organization →</button>
+          </div>
+        `
+        }
+      </div>
+
+      <div class="or">or try sample access</div>
+
+      <div class="row" style="gap:10px">
+        <button class="btn btn-secondary btn-lg grow" data-a="demoLogin" id="finder-demo-btn">
+          ${ic('sparkles', 15)}1-Click Demo
+        </button>
+        <button class="btn btn-secondary btn-lg grow" data-a="auth" data-v="signup" id="finder-signup-btn">
+          ${ic('plus', 15)}Register Org
+        </button>
+      </div>
+
+      <p class="auth-foot">
+        <a href="#/" class="link row" style="display:inline-flex;gap:6px" data-a="goLanding">${ic('arrow-left', 14)}Back to Home</a>
+      </p>
+    </div>
+  `;
+}
+
 export function renderAuth() {
   const s = S.ui.auth;
   const e = S.ui.errors;
-  const f = S.ui.af || (S.ui.af = { email: 'hello@besomoystudio.com', name: '' });
+  const f = S.ui.af || (S.ui.af = { email: 'hello@besomoystudio.com', name: '', org: '', slug: '' });
+
   if (s === 'onboarding') return renderOnboarding();
-  if (s === 'login')
+
+  if (s === 'find-workspace' || s === 'tenant') {
+    return authShell(renderFindWorkspace(), `<button class="btn btn-ghost btn-sm" data-a="goLanding">Home</button>`);
+  }
+
+  if (s === 'login') {
+    const activeTenantId = S.ui.selectedTenant || S.session?.tenantId || S.currentTenantId || 'w1';
+    const tenant = S.tenants[activeTenantId] || S.tenants.w1;
+    const catalogList = getAvailableTenants();
+    const catalogInfo = catalogList.find(t => t.id === activeTenantId) || {
+      name: tenant.ws.name,
+      plan: tenant.ws.plan || 'Enterprise',
+      color: tenant.ws.c || '#5A67D8',
+      slug: tenant.ws.slug || tenant.ws.url || 'besomoy',
+      icon: 'building-2',
+    };
+    const members = (tenant.members || []).slice(0, 3);
+    const defaultEmail = f.email || members[0]?.email || 'hello@besomoystudio.com';
+
     return authShell(
-      `<form class="auth-card${S.ui.fx.auth ? ' fx-auth' : ''}" data-submit="doLogin" novalidate>
-    <div style="display:flex;justify-content:center">${LOGO(30)}</div><h1>Welcome back</h1><p class="sub">Sign in to ${esc(D().ws.name)}</p>
-    ${e.login ? `<div class="alert danger" role="alert">${ic('circle-alert', 15)}<span>${e.login}</span></div>` : ''}
-    <div class="field"><label class="label" for="l-email">Email</label><input class="input input-lg ${icls('email')}" id="l-email" type="email" value="${esc(f.email)}" autocomplete="email" aria-invalid="${!!e.email}" aria-describedby="email-err">${ferr('email')}</div>
-    <div class="field"><div class="row"><label class="label" for="l-pw">Password</label><span class="sp"></span><button type="button" class="link" style="font-size:12.5px" data-a="auth" data-v="forgot">Forgot password?</button></div>
-      <div class="inwrap"><input class="input input-lg ${icls('pw')}" id="l-pw" type="${S.ui.showPw ? 'text' : 'password'}" autocomplete="current-password" style="padding-right:38px" aria-invalid="${!!e.pw}"><button type="button" class="ibtn ibtn-sm" style="position:absolute;right:5px" data-a="toggleShowPw" aria-label="${S.ui.showPw ? 'Hide' : 'Show'} password">${ic(S.ui.showPw ? 'eye-off' : 'eye', 15)}</button></div>${ferr('pw')}</div>
-    <label class="row" style="font-size:13px;gap:8px;cursor:pointer"><input type="checkbox" class="check" id="l-rem" checked>Remember me for 30 days</label>
-    <button class="btn btn-primary btn-lg btn-block" data-a="doLogin" id="login-btn">Sign in</button>
-    <div class="or">or</div>${socialBtns()}
-    <p class="auth-foot">Don't have an account? <button type="button" class="link" data-a="auth" data-v="signup">Sign up</button></p></form>`,
-      `<button class="btn btn-ghost btn-sm" data-a="auth" data-v="signup">Sign up</button>`,
+      `<form class="auth-card auth-card-wide${S.ui.fx.auth ? ' fx-auth' : ''}" data-submit="doLogin" novalidate>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+          <div class="ws-item-avatar" style="background:${catalogInfo.color};width:44px;height:44px;border-radius:12px">
+            ${ic(catalogInfo.icon || 'building-2', 20)}
+          </div>
+          <div class="tenant-pill-badge">
+            ${ic('shield-check', 13)}
+            <span>Workspace: <b>${esc(tenant.ws.name)}</b> (${esc(catalogInfo.plan)})</span>
+          </div>
+        </div>
+
+        <h1>Sign in</h1>
+        <p class="sub">${esc(catalogInfo.slug)}.besomoystudio.com · <button type="button" class="link" data-a="auth" data-v="find-workspace">${ic('arrow-left-right', 12)} Switch workspace</button></p>
+
+        ${e.login ? `<div class="alert danger" role="alert">${ic('circle-alert', 15)}<span>${e.login}</span></div>` : ''}
+
+        <div class="ws-quick-box">
+          <div class="row" style="font-size:12px;color:var(--text-2);justify-content:space-between">
+            <span>Quick sign-in credentials:</span>
+            <span class="faint">Click to pre-fill</span>
+          </div>
+          <div class="ws-quick-pills">
+            ${members
+              .map(
+                m => `
+              <button type="button" class="ws-quick-pill" data-a="quickFillLogin" data-email="${esc(m.email)}" data-role="${esc(m.role)}">
+                <b>${esc(m.name.split(' ')[0])}</b> (${esc(m.role)})
+              </button>
+            `,
+              )
+              .join('')}
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="l-email">Work email</label>
+          <input class="input input-lg ${icls('email')}" id="l-email" type="email" value="${esc(defaultEmail)}" autocomplete="email" aria-invalid="${!!e.email}" aria-describedby="email-err">
+          ${ferr('email')}
+        </div>
+
+        <div class="field">
+          <div class="row">
+            <label class="label" for="l-pw">Password</label>
+            <span class="sp"></span>
+            <button type="button" class="link" style="font-size:12.5px" data-a="auth" data-v="forgot">Forgot password?</button>
+          </div>
+          <div class="inwrap">
+            <input class="input input-lg ${icls('pw')}" id="l-pw" type="${S.ui.showPw ? 'text' : 'password'}" value="Password123!" autocomplete="current-password" style="padding-right:38px" aria-invalid="${!!e.pw}">
+            <button type="button" class="ibtn ibtn-sm" style="position:absolute;right:5px;top:50%;transform:translateY(-50%)" data-a="toggleShowPw" aria-label="${S.ui.showPw ? 'Hide' : 'Show'} password">
+              ${ic(S.ui.showPw ? 'eye-off' : 'eye', 15)}
+            </button>
+          </div>
+          ${ferr('pw')}
+        </div>
+
+        <label class="row" style="font-size:13px;gap:8px;cursor:pointer">
+          <input type="checkbox" class="check" id="l-rem" checked>Remember me for 30 days
+        </label>
+
+        <button class="btn btn-primary btn-lg btn-block" data-a="doLogin" id="login-btn">
+          Sign in to ${esc(tenant.ws.name)}
+        </button>
+
+        <button type="button" class="btn btn-secondary btn-lg btn-block" data-a="demoLogin" id="login-demo-btn">
+          ${ic('sparkles', 15)}Explore as Demo (1-Click)
+        </button>
+
+        <div class="or">or</div>
+        ${socialBtns()}
+
+        <p class="auth-foot">
+          Need a new workspace? <button type="button" class="link" data-a="auth" data-v="signup">Register organization</button>
+        </p>
+      </form>`,
+      `<button class="btn btn-ghost btn-sm" data-a="auth" data-v="signup">Register Org</button>`,
     );
-  if (s === 'signup')
+  }
+
+  if (s === 'signup') {
     return authShell(
-      `<form class="auth-card${S.ui.fx.auth ? ' fx-auth' : ''}" data-submit="doSignup" novalidate>
-    <div style="display:flex;justify-content:center">${LOGO(30)}</div><h1>Create your account</h1><p class="sub">Free for up to 3 members. No credit card required.</p>
-    ${socialBtns()}<div class="or">or sign up with email</div>
-    <div class="field"><label class="label" for="s-name">Full name</label><input class="input input-lg ${icls('name')}" id="s-name" value="${esc(f.name)}" autocomplete="name" placeholder="Arman Hossain Somoy">${ferr('name')}</div>
-    <div class="field"><label class="label" for="s-email">Work email</label><input class="input input-lg ${icls('email')}" id="s-email" type="email" value="" autocomplete="email" placeholder="you@company.com">${ferr('email')}</div>
-    <div class="field"><label class="label" for="s-pw">Password</label><input class="input input-lg ${icls('pw')}" id="s-pw" type="password" data-in="pwStrength" value="${esc(S.ui.pwNew || '')}" autocomplete="new-password">${strengthMeter(S.ui.pwNew || '')}${ferr('pw') || '<span class="hint">At least 10 characters with a number or symbol.</span>'}</div>
-    <button class="btn btn-primary btn-lg btn-block" data-a="doSignup" id="signup-btn">Create account</button>
-    <p class="hint" style="text-align:center">By creating an account you agree to the Terms and Privacy Policy.</p>
-    <p class="auth-foot">Already have an account? <button type="button" class="link" data-a="auth" data-v="login">Sign in</button></p></form>`,
-      `<button class="btn btn-ghost btn-sm" data-a="auth" data-v="login">Log in</button>`,
+      `<form class="auth-card auth-card-wide${S.ui.fx.auth ? ' fx-auth' : ''}" data-submit="doSignup" novalidate>
+        <div style="display:flex;justify-content:center"><span class="ftype" style="--c:var(--accent);width:46px;height:46px;border-radius:12px">${ic('plus', 22)}</span></div>
+        <h1>Register organization</h1>
+        <p class="sub">Set up your workspace and initial administrator account.</p>
+
+        ${e.signup ? `<div class="alert danger" role="alert">${ic('circle-alert', 15)}<span>${e.signup}</span></div>` : ''}
+
+        <!-- Organization Details -->
+        <div class="panel" style="padding:14px;display:flex;flex-direction:column;gap:12px">
+          <div style="font-weight:600;font-size:13px;display:flex;align-items:center;gap:6px;color:var(--text)">
+            ${ic('building-2', 14)} Organization Details
+          </div>
+          <div class="field">
+            <label class="label" for="s-org">Company / Organization name</label>
+            <input class="input input-lg ${icls('org')}" id="s-org" value="${esc(f.org || '')}" placeholder="e.g. Horizon Labs" data-in="signupOrg" autofocus>
+            ${ferr('org')}
+          </div>
+          <div class="field">
+            <label class="label" for="s-slug">Workspace URL slug</label>
+            <div class="row" style="gap:0">
+              <span class="input input-lg" style="width:auto;background:var(--surface-2);border-right:0;border-radius:6px 0 0 6px;display:flex;align-items:center;color:var(--text-2);font-size:12px;font-family:var(--mono)">besomoystudio.com/ws/</span>
+              <input class="input input-lg ${icls('slug')}" id="s-slug" value="${esc(f.slug || '')}" placeholder="horizon-labs" style="border-radius:0 6px 6px 0;font-family:var(--mono)">
+            </div>
+            ${ferr('slug')}
+          </div>
+        </div>
+
+        <!-- Admin Account Details -->
+        <div class="panel" style="padding:14px;display:flex;flex-direction:column;gap:12px">
+          <div style="font-weight:600;font-size:13px;display:flex;align-items:center;gap:6px;color:var(--text)">
+            ${ic('user', 14)} Administrator Account
+          </div>
+          <div class="field">
+            <label class="label" for="s-name">Full name</label>
+            <input class="input input-lg ${icls('name')}" id="s-name" value="${esc(f.name || '')}" autocomplete="name" placeholder="Arman Hossain Somoy">
+            ${ferr('name')}
+          </div>
+          <div class="field">
+            <label class="label" for="s-email">Work email</label>
+            <input class="input input-lg ${icls('email')}" id="s-email" type="email" value="${esc(f.email || '')}" autocomplete="email" placeholder="admin@horizonlabs.io">
+            ${ferr('email')}
+          </div>
+          <div class="field">
+            <label class="label" for="s-pw">Password</label>
+            <input class="input input-lg ${icls('pw')}" id="s-pw" type="password" data-in="pwStrength" value="${esc(S.ui.pwNew || '')}" autocomplete="new-password">
+            ${strengthMeter(S.ui.pwNew || '')}
+            ${ferr('pw') || '<span class="hint">At least 10 characters with a number or symbol.</span>'}
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-lg btn-block" data-a="doSignup" id="signup-btn">
+          Create Organization & Account
+        </button>
+
+        <p class="hint" style="text-align:center">By creating an organization you agree to the Multi-Tenant Terms and Privacy Policy.</p>
+
+        <p class="auth-foot">
+          Already part of an organization? <button type="button" class="link" data-a="auth" data-v="find-workspace">Find workspace</button> or <button type="button" class="link" data-a="auth" data-v="login">Sign in</button>
+        </p>
+      </form>`,
+      `<button class="btn btn-ghost btn-sm" data-a="auth" data-v="find-workspace">Find Workspace</button>`,
     );
+  }
   if (s === 'forgot')
     return authShell(`<form class="auth-card${S.ui.fx.auth ? ' fx-auth' : ''}" data-submit="doForgot" novalidate>
     <div style="display:flex;justify-content:center"><span class="ftype" style="--c:var(--accent);width:44px;height:44px;border-radius:11px">${ic('key-round', 20)}</span></div><h1>Reset your password</h1><p class="sub">Enter your account email and we'll send you a reset link.</p>

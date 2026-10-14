@@ -11,8 +11,10 @@ import { tlAfter } from '../views/timeline.js';
 import { renderLayer } from '../overlays/drawer.js';
 import { placePop } from '../overlays/popovers.js';
 import { renderAuth } from '../pages/auth.js';
+import { renderLanding } from '../pages/landing.js';
 
 export const ROUTE_NAMES = {
+  landing: 'Welcome',
   home: 'Home',
   inbox: 'Inbox',
   mytasks: 'My Tasks',
@@ -71,6 +73,14 @@ export function go(route, params = {}, opt = {}) {
   clearTimeout(go._t);
   S.ui.loading = false;
   if (!same) fxSet(opt.tab ? { tab: true, tabs: true } : { route: true, tabs: true });
+
+  if (route !== 'landing' && S.session?.isAuthenticated && !opt.noHash) {
+    const hashTarget = '#/dashboard' + (route !== 'home' ? '/' + route : '') + (params.id ? '/' + params.id : '');
+    if (location.hash !== hashTarget) {
+      history.replaceState(null, '', hashTarget);
+    }
+  }
+
   render();
   const c = $('.content');
   if (c && !same) c.scrollTop = 0;
@@ -107,7 +117,8 @@ export function tryFocus(key) {
 }
 export function pageTitle() {
   const u = S.ui;
-  if (u.auth) return 'Besomoy Studio';
+  if (u.route === 'landing' && !u.auth) return 'Besomoy Studio · Multi-Tenant Project Management SaaS';
+  if (u.auth) return 'Besomoy Studio · Authentication';
   let t = ROUTE_NAMES[u.route] || 'Not found';
   if (u.route === 'project' && proj(u.params.id)) t = `${(PTABS.find(x => x[0] === u.params.tab) || [0, 'Saved view'])[1]} · ${proj(u.params.id).name}`;
   if (u.route === 'member' && mem(u.params.id)) t = mem(u.params.id).name;
@@ -150,7 +161,20 @@ export function render() {
     /* not supported here; safe to skip */
   }
   const keep = $$('[data-keep]').map(el => [el.dataset.keep, el.scrollTop, el.scrollLeft]);
-  $('#app').innerHTML = S.ui.auth ? renderAuth() : renderShell();
+  if (S.ui.auth) {
+    $('#app').innerHTML = renderAuth();
+  } else if (S.ui.route === 'landing') {
+    $('#app').innerHTML = renderLanding();
+  } else {
+    // Protected dashboard route: enforce authentication guard!
+    if (!S.session?.isAuthenticated) {
+      S.ui.auth = 'find-workspace';
+      location.hash = '#/find-workspace';
+      $('#app').innerHTML = renderAuth();
+    } else {
+      $('#app').innerHTML = renderShell();
+    }
+  }
   $('#layer').innerHTML = renderLayer();
   makeFocusable();
   keep.forEach(([k, t, l]) => {

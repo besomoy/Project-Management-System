@@ -1,7 +1,7 @@
 /* ---------- store ---------- */
 import { TODAY, diffD, iso, parse, uid } from './utils.js';
 import { PCOLORS, TEAMS_SEED } from './constants.js';
-import { seed } from '../data/seed.js';
+import { seedTenants } from '../data/seed.js';
 
 export const STORE_KEY = 'besomoy.v2';
 export const DEFAULT_PREFS = {
@@ -19,6 +19,14 @@ export const DEFAULT_PREFS = {
   name: 'Arman Hossain Somoy',
   title: 'Head of Product',
 };
+
+export const DEFAULT_SESSION = {
+  isAuthenticated: false,
+  user: null,
+  tenantId: 'w1',
+  isDemo: false,
+};
+
 export function load() {
   try {
     for (let i = localStorage.length - 1; i >= 0; i--) {
@@ -28,16 +36,34 @@ export function load() {
     const raw = localStorage.getItem(STORE_KEY);
     if (raw) {
       const j = JSON.parse(raw);
-      if (j && j.data && j.data.tasks) return j;
+      if (j && (j.tenants || (j.data && j.data.tasks))) return j;
     }
   } catch {
     /* storage blocked or corrupt: start from seed data */
   }
   return null;
 }
+
 export const saved = load();
+const initialTenants = seedTenants();
+const loadedTenants = saved?.tenants
+  ? Object.assign({}, initialTenants, saved.tenants)
+  : saved?.data && saved.data.tasks
+    ? { ...initialTenants, w1: saved.data }
+    : initialTenants;
+
 export const S = {
-  data: saved?.data || seed(),
+  tenants: loadedTenants,
+  session: Object.assign({}, DEFAULT_SESSION, saved?.session || {}),
+  currentTenantId: saved?.currentTenantId || saved?.session?.tenantId || 'w1',
+  get data() {
+    const tid = S.session?.tenantId || S.currentTenantId || 'w1';
+    return S.tenants[tid] || S.tenants.w1 || Object.values(S.tenants)[0];
+  },
+  set data(val) {
+    const tid = S.session?.tenantId || S.currentTenantId || 'w1';
+    S.tenants[tid] = val;
+  },
   prefs: Object.assign({}, DEFAULT_PREFS, saved?.prefs || {}),
   views: saved?.views || {},
   ui: {
@@ -46,7 +72,7 @@ export const S = {
     authStep: 'login',
     onb: 0,
     onbData: { use: 'product', team: 'kanban', size: '2-10', ws: '', proj: 'Website Launch', tmpl: 'web', invites: '' },
-    route: 'home',
+    route: 'landing',
     params: {},
     history: [],
     collapsed: !!saved?.collapsed,
@@ -84,14 +110,27 @@ export const S = {
     collapsedCols: {},
     errors: {},
     drafts: {},
+    selectedTenant: null,
   },
 };
+
 export let _saveT;
 export function save() {
   clearTimeout(_saveT);
   _saveT = setTimeout(() => {
     try {
-      localStorage.setItem(STORE_KEY, JSON.stringify({ data: S.data, prefs: S.prefs, views: S.views, collapsed: S.ui.collapsed }));
+      localStorage.setItem(
+        STORE_KEY,
+        JSON.stringify({
+          tenants: S.tenants,
+          session: S.session,
+          currentTenantId: S.currentTenantId,
+          data: S.data,
+          prefs: S.prefs,
+          views: S.views,
+          collapsed: S.ui.collapsed,
+        }),
+      );
     } catch {
       /* storage full or blocked: keep working in memory */
     }
@@ -100,7 +139,7 @@ export function save() {
 
 /* ---------- lookups ---------- */
 export const D = () => S.data;
-export const me = () => D().members.find(m => m.id === D().me);
+export const me = () => D().members.find(m => m.id === D().me) || D().members[0];
 export const mem = id => D().members.find(m => m.id === id);
 export const proj = id => D().projects.find(p => p.id === id);
 export const task = id => D().tasks.find(t => t.id === id);

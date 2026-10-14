@@ -43,6 +43,7 @@ import './overlays/context-menu.js';
 import './overlays/palette.js';
 import './pages/settings.js';
 import './pages/auth.js';
+import './pages/landing.js';
 import './pages/design-system.js';
 import './actions/actions.js';
 import './actions/events.js';
@@ -58,6 +59,50 @@ import { S, D } from './core/store.js';
 import { A } from './actions/actions.js';
 import { ROUTE_NAMES, render, go } from './shell/render.js';
 
+export function syncRouteFromHash() {
+  const raw = (location.hash || '').replace(/^#\/?/, '').trim();
+  const authRoutes = ['login', 'signup', 'forgot', 'reset', 'verify', 'onboarding', 'find-workspace', 'tenant'];
+
+  if (!raw || raw === 'landing') {
+    // Root URL / or #/ -> Landing page
+    S.ui.auth = null;
+    S.ui.route = 'landing';
+  } else if (raw === 'demo') {
+    A.demoLogin();
+    return;
+  } else if (authRoutes.includes(raw)) {
+    S.ui.auth = raw;
+  } else if (raw.startsWith('dashboard')) {
+    // /dashboard or /dashboard/{route} or /dashboard/project/{id}
+    const parts = raw.split('/').filter(Boolean);
+    const subRoute = parts[1] || S.prefs.home || 'home';
+    const paramId = parts[2] || null;
+
+    if (!S.session?.isAuthenticated) {
+      S.ui.auth = 'find-workspace';
+      location.hash = '#/find-workspace';
+    } else {
+      S.ui.auth = null;
+      S.ui.route = ROUTE_NAMES[subRoute] ? subRoute : S.prefs.home || 'home';
+      if (paramId) S.ui.params = { id: paramId };
+    }
+  } else if (ROUTE_NAMES[raw] && raw !== 'landing') {
+    // Direct dashboard route access e.g. #projects or #home
+    if (!S.session?.isAuthenticated) {
+      S.ui.auth = 'find-workspace';
+      location.hash = '#/find-workspace';
+    } else {
+      S.ui.auth = null;
+      S.ui.route = raw;
+    }
+  } else {
+    // Default fallback to landing page
+    S.ui.auth = null;
+    S.ui.route = 'landing';
+  }
+  render();
+}
+
 (function init() {
   document.documentElement.lang = 'en';
   if (!document.getElementById('sr-live')) {
@@ -67,12 +112,8 @@ import { ROUTE_NAMES, render, go } from './shell/render.js';
     l.setAttribute('aria-live', 'polite');
     document.body.appendChild(l);
   }
-  const h = (location.hash || '').slice(1);
-  const authRoutes = ['login', 'signup', 'forgot', 'reset', 'verify', 'onboarding'];
-  if (authRoutes.includes(h)) S.ui.auth = h;
-  else if (h && ROUTE_NAMES[h]) S.ui.route = h;
-  else S.ui.route = S.prefs.home || 'home';
-  render();
+  syncRouteFromHash();
+  window.addEventListener('hashchange', syncRouteFromHash);
 })();
 
 // Dev-only handle for debugging and screenshot tooling; stripped from production builds.

@@ -1,7 +1,7 @@
 /* ---------- seed data ---------- */
 import { dOff, minsAgo, uid } from '../core/utils.js';
 
-export function seed() {
+export function seedBesomoyStudio() {
   const members = [
     {
       id: 'm1',
@@ -547,5 +547,613 @@ export function seed() {
       mention_all: true,
       assign_self: true,
     },
+  };
+}
+
+export function seed() {
+  return seedBesomoyStudio();
+}
+
+export const TENANTS_CATALOG = [
+  {
+    id: 'w1',
+    name: 'Besomoy Studio',
+    slug: 'besomoystudio',
+    url: 'besomoystudio',
+    tagline: 'Product & Design Agency',
+    color: '#5A67D8',
+    c: '#5A67D8',
+    plan: 'Enterprise',
+    brand: true,
+    icon: 'sparkles',
+    recommended: true,
+    desc: 'Flagship demo workspace with 7 complete projects (board, gantt, table, calendar), 8 team members, and realistic activity logs.',
+    membersCount: 8,
+    projectsCount: 7,
+    isDemo: true,
+    defaultUser: { email: 'hello@besomoystudio.com', name: 'Arman Hossain Somoy', role: 'Owner' },
+  },
+  {
+    id: 'w3',
+    name: 'Acme Labs',
+    slug: 'acmelabs',
+    url: 'acmelabs',
+    tagline: 'Engineering & Cloud Security',
+    color: '#2563EB',
+    c: '#2563EB',
+    plan: 'Business',
+    brand: false,
+    icon: 'shield-check',
+    recommended: false,
+    desc: 'Engineering organization focusing on Core Infrastructure, Zero Trust Auth, and Developer API Platform.',
+    membersCount: 4,
+    projectsCount: 3,
+    isDemo: false,
+    defaultUser: { email: 'alex@acmelabs.io', name: 'Alex Rivera', role: 'Admin' },
+  },
+  {
+    id: 'w2',
+    name: 'Personal Workspace',
+    slug: 'personal',
+    url: 'personal',
+    tagline: 'Solo Projects & Reading List',
+    color: '#10B981',
+    c: '#10B981',
+    plan: 'Free',
+    brand: false,
+    icon: 'user',
+    recommended: false,
+    desc: 'Lightweight personal workspace for individual task planning and note keeping.',
+    membersCount: 1,
+    projectsCount: 1,
+    isDemo: false,
+    defaultUser: { email: 'arman@besomoy.me', name: 'Arman H.', role: 'Owner' },
+  },
+];
+
+export function seedAcmeLabs() {
+  const members = [
+    {
+      id: 'm301',
+      name: 'Marcus Lee',
+      email: 'marcus@acmelabs.io',
+      role: 'Owner',
+      team: 'eng',
+      title: 'VP Infrastructure',
+      c: '#3B82C4',
+      status: 'active',
+      last: 0,
+      tz: 'San Francisco',
+    },
+    {
+      id: 'm302',
+      name: 'Sarah Chen',
+      email: 'sarah@acmelabs.io',
+      role: 'Admin',
+      team: 'eng',
+      title: 'Principal Architect',
+      c: '#C54B78',
+      status: 'active',
+      last: 12,
+      tz: 'New York',
+    },
+    {
+      id: 'm303',
+      name: 'John Carter',
+      email: 'john@acmelabs.io',
+      role: 'Member',
+      team: 'eng',
+      title: 'Senior SRE',
+      c: '#23918A',
+      status: 'active',
+      last: 45,
+      tz: 'Austin',
+    },
+    {
+      id: 'm304',
+      name: 'Elena Rostova',
+      email: 'elena@acmelabs.io',
+      role: 'Member',
+      team: 'product',
+      title: 'Security & Compliance Lead',
+      c: '#C48A1E',
+      status: 'active',
+      last: 180,
+      tz: 'London',
+    },
+  ];
+
+  const projects = [
+    {
+      id: 'p31',
+      key: 'CORE',
+      name: 'Core Platform 2.0',
+      icon: 'server',
+      color: 'blue',
+      status: 'active',
+      team: 'eng',
+      lead: 'm301',
+      due: dOff(30),
+      start: dOff(-20),
+      fav: true,
+      members: ['m301', 'm302', 'm303'],
+      desc: 'Multi-region Kubernetes migration with zero-downtime database failover and automated canary deployments.',
+      milestones: [
+        { name: 'Canary Cluster Live', date: dOff(5) },
+        { name: 'Full Traffic Cutover', date: dOff(30) },
+      ],
+      last: 10,
+    },
+    {
+      id: 'p32',
+      key: 'SEC',
+      name: 'SOC2 Type II Audit',
+      icon: 'shield-check',
+      color: 'amber',
+      status: 'active',
+      team: 'product',
+      lead: 'm304',
+      due: dOff(45),
+      start: dOff(-10),
+      fav: true,
+      members: ['m301', 'm304'],
+      desc: 'Enterprise security compliance audit, penetration testing, automated evidence collection, and vendor risk reviews.',
+      milestones: [
+        { name: 'Pen-test Report Signed', date: dOff(12) },
+        { name: 'Auditor Sign-off', date: dOff(45) },
+      ],
+      last: 25,
+    },
+    {
+      id: 'p33',
+      key: 'API',
+      name: 'Developer API Gateway',
+      icon: 'cpu',
+      color: 'teal',
+      status: 'planning',
+      team: 'eng',
+      lead: 'm303',
+      due: dOff(60),
+      start: dOff(-5),
+      fav: false,
+      members: ['m302', 'm303'],
+      desc: 'High-throughput Rust-based edge reverse proxy with global rate limiting, OAuth2 mTLS token validation, and analytics telemetry.',
+      milestones: [
+        { name: 'Architecture RFC Approval', date: dOff(15) },
+        { name: 'Alpha SDK Release', date: dOff(60) },
+      ],
+      last: 80,
+    },
+  ];
+
+  const tasks = [
+    {
+      id: 't301',
+      title: 'Provision multi-region EKS clusters in us-east-1 and eu-central-1',
+      project: 'p31',
+      status: 'progress',
+      priority: 'urgent',
+      assignee: 'm301',
+      due: dOff(3),
+      created: dOff(-15),
+      updated: minsAgo(30),
+      desc: 'Set up Terraform modules with Crossplane providers.',
+      labels: ['infra', 'devops'],
+    },
+    {
+      id: 't302',
+      title: 'Configure Aurora PostgreSQL global database replication',
+      project: 'p31',
+      status: 'todo',
+      priority: 'high',
+      assignee: 'm303',
+      due: dOff(7),
+      created: dOff(-10),
+      updated: minsAgo(120),
+      desc: 'Benchmark read replica latency under 15ms.',
+      labels: ['backend', 'database'],
+    },
+    {
+      id: 't303',
+      title: 'Automated evidence collection for SOC2 CC6 controls',
+      project: 'p32',
+      status: 'progress',
+      priority: 'high',
+      assignee: 'm304',
+      due: dOff(5),
+      created: dOff(-8),
+      updated: minsAgo(90),
+      desc: 'Integrate Vanta API with AWS CloudTrail and Okta audit logs.',
+      labels: ['security', 'compliance'],
+    },
+    {
+      id: 't304',
+      title: 'Third-party penetration test remediation checklist',
+      project: 'p32',
+      status: 'review',
+      priority: 'urgent',
+      assignee: 'm304',
+      due: dOff(10),
+      created: dOff(-12),
+      updated: minsAgo(40),
+      desc: 'Patch discovered TLS cipher vulnerabilities in ingress controllers.',
+      labels: ['security'],
+    },
+    {
+      id: 't305',
+      title: 'Benchmarking Envoy vs Pingora proxy throughput',
+      project: 'p33',
+      status: 'todo',
+      priority: 'medium',
+      assignee: 'm303',
+      due: dOff(14),
+      created: dOff(-4),
+      updated: minsAgo(240),
+      desc: 'Run wrk2 load tests measuring p99 latency under 200k req/s.',
+      labels: ['performance', 'api'],
+    },
+    {
+      id: 't306',
+      title: 'Draft OpenAPI 3.1 specification for v2 endpoints',
+      project: 'p33',
+      status: 'backlog',
+      priority: 'low',
+      assignee: 'm302',
+      due: dOff(20),
+      created: dOff(-3),
+      updated: minsAgo(500),
+      desc: 'Standardize error payloads using RFC 7807 problem details.',
+      labels: ['api'],
+    },
+  ];
+
+  const comments = [
+    {
+      id: 'c301',
+      task: 't301',
+      by: 'm302',
+      at: minsAgo(60),
+      text: 'Terraform modules look solid. Let’s make sure IAM roles use least-privilege policies.',
+      re: { '👍': ['m301'] },
+    },
+    {
+      id: 'c302',
+      task: 't303',
+      by: 'm301',
+      at: minsAgo(180),
+      text: 'AWS credentials scoped to read-only auditor role are ready in Secrets Manager.',
+      re: {},
+    },
+  ];
+
+  const activity = [
+    { id: 'a301', by: 'm301', verb: 'moved', task: 't301', project: 'p31', at: minsAgo(30), extra: 'to In Progress' },
+    { id: 'a302', by: 'm304', verb: 'commented on', task: 't303', project: 'p32', at: minsAgo(90), extra: '' },
+    { id: 'a303', by: 'm303', verb: 'created', task: 't305', project: 'p33', at: minsAgo(240), extra: '' },
+  ];
+
+  const notifs = [
+    {
+      id: 'n301',
+      type: 'mention',
+      by: 'm302',
+      task: 't301',
+      text: 'mentioned you in',
+      snippet: 'IAM roles use least-privilege policies',
+      at: minsAgo(60),
+      read: false,
+    },
+    {
+      id: 'n302',
+      type: 'assign',
+      by: 'm301',
+      task: 't303',
+      text: 'assigned you',
+      snippet: 'Automated evidence collection for SOC2',
+      at: minsAgo(180),
+      read: true,
+    },
+  ];
+
+  const files = [
+    { id: 'f301', project: 'p31', name: 'terraform-architecture.pdf', type: 'pdf', size: '2.4 MB', by: 'm301', at: minsAgo(4000) },
+    { id: 'f302', project: 'p32', name: 'soc2-gap-analysis.xlsx', type: 'sheet', size: '1.2 MB', by: 'm304', at: minsAgo(8000) },
+  ];
+
+  const events = [
+    { id: 'e301', title: 'Architecture Review', date: dOff(1), time: '14:00', project: 'p31' },
+    { id: 'e302', title: 'SOC2 Auditor Sync', date: dOff(4), time: '10:30', project: 'p32' },
+  ];
+
+  return {
+    ws: { id: 'w3', name: 'Acme Labs', slug: 'acme', url: 'acmelabs', c: '#3B82C4', plan: 'Business', brand: false },
+    workspaces: [
+      { id: 'w1', name: 'Besomoy Studio', c: '#1D1C1A', plan: 'Team', brand: true },
+      { id: 'w2', name: 'Personal', c: '#3D8E5F', plan: 'Free' },
+      { id: 'w3', name: 'Acme Labs', c: '#3B82C4', plan: 'Business' },
+    ],
+    me: 'm301',
+    members,
+    projects,
+    tasks,
+    comments,
+    activity,
+    notifs,
+    files,
+    events,
+    projOrder: projects.map(p => p.id),
+    savedViews: [
+      {
+        id: 'v31',
+        project: 'p31',
+        name: 'Critical infra',
+        type: 'list',
+        filters: [{ f: 'priority', op: 'is', v: ['urgent', 'high'] }],
+      },
+    ],
+    recentSearches: ['kubernetes', 'soc2', 'database'],
+    sessions: [{ id: 'se301', dev: 'ThinkPad X1 · Fedora Linux', loc: 'San Francisco, US', at: 'Active now', cur: true }],
+    invoices: [
+      { id: 'INV-ACME-01', date: dOff(-20), amt: '$280.00', st: 'Paid' },
+      { id: 'INV-ACME-02', date: dOff(-50), amt: '$280.00', st: 'Paid' },
+    ],
+    tfa: true,
+    notifPrefs: {
+      email_mention: true,
+      email_assign: true,
+      email_digest: true,
+      email_comment: true,
+      push_mention: true,
+      push_assign: true,
+      push_comment: true,
+      push_due: true,
+      mention_all: true,
+      assign_self: true,
+    },
+  };
+}
+
+export function seedPersonal() {
+  const members = [
+    {
+      id: 'm201',
+      name: 'Arman Hossain Somoy',
+      email: 'arman@personal.me',
+      role: 'Owner',
+      team: 'product',
+      title: 'Maker & Developer',
+      c: '#3D8E5F',
+      status: 'active',
+      last: 0,
+      tz: 'San Francisco',
+    },
+  ];
+
+  const projects = [
+    {
+      id: 'p21',
+      key: 'LIFE',
+      name: 'Personal Goals 2026',
+      icon: 'compass',
+      color: 'green',
+      status: 'active',
+      team: 'product',
+      lead: 'm201',
+      due: dOff(120),
+      start: dOff(-40),
+      fav: true,
+      members: ['m201'],
+      desc: 'Health, reading, travel, and personal finance milestones for 2026.',
+      milestones: [{ name: 'Half Marathon Training Complete', date: dOff(30) }],
+      last: 5,
+    },
+    {
+      id: 'p22',
+      key: 'LABS',
+      name: 'Open Source Utilities',
+      icon: 'code',
+      color: 'indigo',
+      status: 'active',
+      team: 'product',
+      lead: 'm201',
+      due: dOff(90),
+      start: dOff(-15),
+      fav: false,
+      members: ['m201'],
+      desc: 'Lightweight developer tools and productivity browser extensions.',
+      milestones: [{ name: 'v1.0 GitHub Release', date: dOff(25) }],
+      last: 40,
+    },
+  ];
+
+  const tasks = [
+    {
+      id: 't201',
+      title: 'Complete 10k weekend preparation run',
+      project: 'p21',
+      status: 'progress',
+      priority: 'high',
+      assignee: 'm201',
+      due: dOff(2),
+      created: dOff(-10),
+      updated: minsAgo(15),
+      desc: 'Target pace under 5:15 min/km.',
+      labels: ['health'],
+    },
+    {
+      id: 't202',
+      title: 'Publish lightweight canvas charting library on npm',
+      project: 'p22',
+      status: 'todo',
+      priority: 'medium',
+      assignee: 'm201',
+      due: dOff(14),
+      created: dOff(-5),
+      updated: minsAgo(120),
+      desc: 'Zero dependencies, under 4KB gzipped.',
+      labels: ['oss', 'frontend'],
+    },
+  ];
+
+  return {
+    ws: { id: 'w2', name: 'Personal Workspace', slug: 'personal', url: 'personal', c: '#3D8E5F', plan: 'Free', brand: false },
+    workspaces: [
+      { id: 'w1', name: 'Besomoy Studio', c: '#1D1C1A', plan: 'Team', brand: true },
+      { id: 'w2', name: 'Personal', c: '#3D8E5F', plan: 'Free' },
+      { id: 'w3', name: 'Acme Labs', c: '#3B82C4', plan: 'Business' },
+    ],
+    me: 'm201',
+    members,
+    projects,
+    tasks,
+    comments: [],
+    activity: [{ id: 'a201', by: 'm201', verb: 'created', task: 't201', project: 'p21', at: minsAgo(15), extra: '' }],
+    notifs: [],
+    files: [],
+    events: [{ id: 'e201', title: 'Monthly Habit Review', date: dOff(3), time: '18:00', project: 'p21' }],
+    projOrder: projects.map(p => p.id),
+    savedViews: [],
+    recentSearches: ['health', 'npm', 'running'],
+    sessions: [{ id: 'se201', dev: 'MacBook Air · Safari', loc: 'San Francisco, US', at: 'Active now', cur: true }],
+    invoices: [],
+    tfa: false,
+    notifPrefs: {
+      email_mention: true,
+      email_assign: true,
+      email_digest: true,
+      email_comment: false,
+      push_mention: true,
+      push_assign: true,
+      push_comment: true,
+      push_due: true,
+      mention_all: true,
+      assign_self: true,
+    },
+  };
+}
+
+export function createTenantData({ id, name, slug, plan = 'Team', c = '#5A67D8', adminName, adminEmail }) {
+  const adminId = 'm_' + uid('u');
+  const projId = 'p_' + uid('p');
+  const wsSlug = slug || name.toLowerCase().replace(/[^a-z0-9]+/g, '');
+
+  const members = [
+    {
+      id: adminId,
+      name: adminName || 'Admin User',
+      email: adminEmail || `admin@${wsSlug}.com`,
+      role: 'Owner',
+      team: 'product',
+      title: 'Workspace Owner',
+      c: c,
+      status: 'active',
+      last: 0,
+      tz: 'UTC',
+    },
+  ];
+
+  const projects = [
+    {
+      id: projId,
+      key: name.slice(0, 3).toUpperCase() || 'PRJ',
+      name: 'Workspace Roadmap',
+      icon: 'rocket',
+      color: 'indigo',
+      status: 'active',
+      team: 'product',
+      lead: adminId,
+      due: dOff(30),
+      start: dOff(0),
+      fav: true,
+      members: [adminId],
+      desc: `Starter project for ${name}. Track milestones, sprints, and deliverable handoffs.`,
+      milestones: [
+        { name: 'Team Onboarded', date: dOff(7) },
+        { name: 'First Milestone Launch', date: dOff(30) },
+      ],
+      last: 1,
+    },
+  ];
+
+  const tasks = [
+    {
+      id: 't_' + uid('t'),
+      title: 'Invite your core team members',
+      project: projId,
+      status: 'progress',
+      priority: 'urgent',
+      assignee: adminId,
+      due: dOff(2),
+      created: dOff(0),
+      updated: minsAgo(5),
+      desc: 'Send email invites from Settings → Members.',
+      labels: ['onboarding'],
+    },
+    {
+      id: 't_' + uid('t'),
+      title: 'Define your first project roadmap',
+      project: projId,
+      status: 'todo',
+      priority: 'high',
+      assignee: adminId,
+      due: dOff(7),
+      created: dOff(0),
+      updated: minsAgo(10),
+      desc: 'Set up boards, lists, and milestones.',
+      labels: ['planning'],
+    },
+    {
+      id: 't_' + uid('t'),
+      title: 'Explore Timeline (Gantt) & Calendar views',
+      project: projId,
+      status: 'todo',
+      priority: 'medium',
+      assignee: adminId,
+      due: dOff(14),
+      created: dOff(0),
+      updated: minsAgo(15),
+      desc: 'Visualise task dependencies and schedule over time.',
+      labels: ['feature'],
+    },
+  ];
+
+  return {
+    ws: { id, name, slug: wsSlug, url: wsSlug, c, plan, brand: false },
+    workspaces: [{ id, name, c, plan, brand: false }],
+    me: adminId,
+    members,
+    projects,
+    tasks,
+    comments: [],
+    activity: [{ id: 'a_' + uid('a'), by: adminId, verb: 'created workspace', task: null, project: projId, at: minsAgo(1), extra: name }],
+    notifs: [],
+    files: [],
+    events: [],
+    projOrder: [projId],
+    savedViews: [],
+    recentSearches: [],
+    sessions: [{ id: 'se_' + uid('s'), dev: 'Current Browser Session', loc: 'Local Workspace', at: 'Active now', cur: true }],
+    invoices: [],
+    tfa: false,
+    notifPrefs: {
+      email_mention: true,
+      email_assign: true,
+      email_digest: true,
+      email_comment: true,
+      push_mention: true,
+      push_assign: true,
+      push_comment: true,
+      push_due: true,
+      mention_all: true,
+      assign_self: true,
+    },
+  };
+}
+
+export function seedTenants() {
+  return {
+    w1: seedBesomoyStudio(),
+    w3: seedAcmeLabs(),
+    w2: seedPersonal(),
   };
 }
