@@ -1,7 +1,30 @@
+# Dependencies
 node_modules/
 dist/
-.vercel/
-.DS_Store
-__MACOSX/
+dist-ssr/
+*.local
+
+# Logs
+logs/
 *.log
-.env*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# OS and Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Environment variables
+.env
+.env.*
+!.env.example
