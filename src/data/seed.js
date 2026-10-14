@@ -5,8 +5,8 @@ export function seed() {
   const members = [
     {
       id: 'm1',
-      name: 'Tanjim Islam',
-      email: 'hello@gr8rstudio.com',
+      name: 'Arman Hossain Somoy',
+      email: 'hello@besomoystudio.com',
       role: 'Owner',
       team: 'product',
       title: 'Head of Product',
@@ -18,7 +18,7 @@ export function seed() {
     {
       id: 'm2',
       name: 'Sarah Chen',
-      email: 'sarah@gr8rstudio.com',
+      email: 'sarah@besomoystudio.com',
       role: 'Admin',
       team: 'design',
       title: 'Design Lead',
@@ -30,7 +30,7 @@ export function seed() {
     {
       id: 'm3',
       name: 'John Carter',
-      email: 'john@gr8rstudio.com',
+      email: 'john@besomoystudio.com',
       role: 'Member',
       team: 'eng',
       title: 'Frontend Engineer',
@@ -42,7 +42,7 @@ export function seed() {
     {
       id: 'm4',
       name: 'Emma Wilson',
-      email: 'emma@gr8rstudio.com',
+      email: 'emma@besomoystudio.com',
       role: 'Member',
       team: 'design',
       title: 'Product Designer',
@@ -54,7 +54,7 @@ export function seed() {
     {
       id: 'm5',
       name: 'Priya Patel',
-      email: 'priya@gr8rstudio.com',
+      email: 'priya@besomoystudio.com',
       role: 'Member',
       team: 'mkt',
       title: 'Content Strategist',
@@ -66,7 +66,7 @@ export function seed() {
     {
       id: 'm6',
       name: 'Marcus Lee',
-      email: 'marcus@gr8rstudio.com',
+      email: 'marcus@besomoystudio.com',
       role: 'Member',
       team: 'eng',
       title: 'Backend Engineer',
@@ -78,7 +78,7 @@ export function seed() {
     {
       id: 'm7',
       name: 'Lena Fischer',
-      email: 'lena@gr8rstudio.com',
+      email: 'lena@besomoystudio.com',
       role: 'Admin',
       team: 'product',
       title: 'QA Lead',
@@ -114,7 +114,7 @@ export function seed() {
       start: dOff(-30),
       fav: true,
       members: ['m1', 'm2', 'm3', 'm4', 'm5', 'm6', 'm7'],
-      desc: 'Rebuild gr8rstudio.com with a clearer information architecture, a responsive component library, and a faster CMS-driven blog.',
+      desc: 'Rebuild besomoystudio.com with a clearer information architecture, a responsive component library, and a faster CMS-driven blog.',
       milestones: [
         { name: 'Wireframes signed off', date: dOff(2) },
         { name: 'Dev handoff', date: dOff(14) },
@@ -384,7 +384,7 @@ export function seed() {
       text: 'Tablet layout feels crowded around the logo strip. Could we drop to four logos under 1024px?',
       re: { '👍': ['m2', 'm3'] },
     },
-    { id: 'c2', task: 't3', by: 'm2', at: minsAgo(210), text: 'Good call. Updated in v3 — @Tanjim Islam can you review before Thursday?', re: {} },
+    { id: 'c2', task: 't3', by: 'm2', at: minsAgo(210), text: 'Good call. Updated in v3 — @Arman Hossain Somoy can you review before Thursday?', re: {} },
     {
       id: 'c3',
       task: 't3',
@@ -398,7 +398,14 @@ export function seed() {
     { id: 'c6', task: 't9', by: 'm1', at: minsAgo(55), text: 'This slipped past yesterday — @Emma Wilson anything blocking the permission prompts?', re: {} },
     { id: 'c7', task: 't24', by: 'm7', at: minsAgo(700), text: 'Face ID fallback to passcode works on iOS 17; testing Android next.', re: {} },
     { id: 'c8', task: 't34', by: 'm2', at: minsAgo(1500), text: 'Finance needs the channel split before approving.', re: {} },
-    { id: 'c9', task: 't35', by: 'm7', at: minsAgo(200), text: 'Support training moved to Monday. @Tanjim Islam please confirm the status page copy.', re: {} },
+    {
+      id: 'c9',
+      task: 't35',
+      by: 'm7',
+      at: minsAgo(200),
+      text: 'Support training moved to Monday. @Arman Hossain Somoy please confirm the status page copy.',
+      re: {},
+    },
   ];
   const A = (by, verb, task, project, m, extra = '') => ({ id: uid('a'), by, verb, task, project, at: minsAgo(m), extra });
   const activity = [
@@ -423,7 +430,7 @@ export function seed() {
       by: 'm2',
       task: 't3',
       text: 'mentioned you in',
-      snippet: 'Updated in v3 — @Tanjim Islam can you review before Thursday?',
+      snippet: 'Updated in v3 — @Arman Hossain Somoy can you review before Thursday?',
       at: minsAgo(210),
       read: false,
     },
@@ -444,7 +451,7 @@ export function seed() {
       by: 'm7',
       task: 't35',
       text: 'mentioned you in',
-      snippet: 'Support training moved to Monday. @Tanjim Islam please confirm the status page copy.',
+      snippet: 'Support training moved to Monday. @Arman Hossain Somoy please confirm the status page copy.',
       at: minsAgo(200),
       read: false,
     },
@@ -498,9 +505,9 @@ export function seed() {
   const tmp = tk('t3');
   tmp.updated = minsAgo(38);
   return {
-    ws: { name: 'Gr8r Studio', url: 'gr8rstudio', c: '#1D1C1A', brand: true },
+    ws: { name: 'Besomoy Studio', url: 'besomoystudio', c: '#1D1C1A', brand: true },
     workspaces: [
-      { id: 'w1', name: 'Gr8r Studio', c: '#1D1C1A', plan: 'Team', brand: true },
+      { id: 'w1', name: 'Besomoy Studio', c: '#1D1C1A', plan: 'Team', brand: true },
       { id: 'w2', name: 'Personal', c: '#3D8E5F', plan: 'Free' },
       { id: 'w3', name: 'Acme Labs', c: '#3B82C4', plan: 'Business' },
     ],
@@ -518,7 +525,7 @@ export function seed() {
     recentSearches: ['homepage', 'Sarah', 'wireframes'],
     sessions: [
       { id: 'se1', dev: 'MacBook Pro · Chrome', loc: 'San Francisco, US', at: 'Active now', cur: true },
-      { id: 'se2', dev: 'iPhone 15 · Gr8r app', loc: 'San Francisco, US', at: '2 hours ago' },
+      { id: 'se2', dev: 'iPhone 15 · Besomoy app', loc: 'San Francisco, US', at: '2 hours ago' },
       { id: 'se3', dev: 'Windows · Edge', loc: 'Oakland, US', at: 'Sep 12' },
     ],
     invoices: [
