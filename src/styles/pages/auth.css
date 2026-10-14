@@ -76,7 +76,7 @@
 }
 .ws-item:hover {
   background: var(--surface-2);
-  border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+  border-color: var(--text);
   transform: translateY(-1px);
 }
 .ws-item-avatar {
@@ -118,8 +118,8 @@
     border-color var(--ease);
 }
 .ws-quick-pill:hover {
-  background: color-mix(in srgb, var(--accent) 15%, var(--surface));
-  border-color: var(--accent);
+  background: var(--surface-3);
+  border-color: var(--text);
 }
 .auth-card h1 {
   font-size: var(--fs-2xl);

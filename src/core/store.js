@@ -6,7 +6,7 @@ import { seedTenants } from '../data/seed.js';
 export const STORE_KEY = 'besomoy.v2';
 export const DEFAULT_PREFS = {
   theme: 'system',
-  accent: 'indigo',
+  accent: 'graphite',
   side: 'comfortable',
   density: 'comfortable',
   weekStart: 1,

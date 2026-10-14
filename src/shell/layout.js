@@ -35,15 +35,15 @@ export function renderShell() {
       ${
         S.session?.isDemo
           ? `
-        <div class="demo-banner" style="display:flex;align-items:center;justify-content:space-between;padding:8px 20px;background:color-mix(in srgb,var(--accent) 12%,var(--surface));border-bottom:1px solid color-mix(in srgb,var(--accent) 25%,var(--border));font-size:12.5px;color:var(--text);flex-wrap:wrap;gap:8px">
+        <div class="demo-banner" style="display:flex;align-items:center;justify-content:space-between;padding:8px 20px;background:var(--sunken);border-bottom:1px solid var(--border);font-size:12.5px;color:var(--text);flex-wrap:wrap;gap:8px">
           <div style="display:flex;align-items:center;gap:8px">
-            <span style="display:inline-flex;color:var(--accent)">${ic('sparkles', 14)}</span>
+            <span style="display:inline-flex;color:var(--text)">${ic('sparkles', 14)}</span>
             <span><b>Demo Sandbox:</b> Exploring <b>${esc(D().ws.name)}</b> with sample data. Strict tenant isolation is active.</span>
           </div>
           <div style="display:flex;align-items:center;gap:8px">
-            <button class="btn btn-xs btn-ghost" data-a="auth" data-v="find-workspace">${ic('building-2', 12)}Switch Org</button>
+            <button class="btn btn-xs btn-secondary" data-a="auth" data-v="find-workspace">${ic('building-2', 12)}Switch Org</button>
             <button class="btn btn-xs btn-primary" data-a="auth" data-v="signup">${ic('plus', 12)}Register Org</button>
-            <button class="btn btn-xs btn-secondary" data-a="signOut">Exit Demo</button>
+            <button class="btn btn-xs btn-ghost" data-a="signOut">Exit Demo</button>
           </div>
         </div>
       `

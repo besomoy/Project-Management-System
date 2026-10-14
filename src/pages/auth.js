@@ -1,6 +1,6 @@
 /* ---------------- AUTH ---------------- */
 import { esc } from '../core/utils.js';
-import { LOGO, ic } from '../core/icons.js';
+import { LOGO, MARK, ic } from '../core/icons.js';
 import { S } from '../core/store.js';
 import { effectiveDark } from '../core/theme.js';
 import { TEMPLATES } from '../overlays/modals.js';
@@ -8,7 +8,7 @@ import { strengthMeter } from './settings.js';
 import { TENANTS_CATALOG } from '../data/seed.js';
 
 export function authShell(inner, topRight = '') {
-  return `<div class="auth"><div class="auth-top"><a href="#/" class="brand" data-a="goLanding">${LOGO(22)}<span style="font-weight:600;font-size:var(--fs-md);margin-left:8px">Besomoy Studio</span></a><div class="row">${topRight}<button class="ibtn" data-a="toggleDark" data-tip="Toggle theme" aria-label="Toggle theme">${ic(effectiveDark() ? 'sun' : 'moon', 16)}</button></div></div>
+  return `<div class="auth"><div class="auth-top"><a href="#/" class="brand" data-a="goLanding" style="gap:8px">${MARK(22)}${LOGO(20)}</a><div class="row">${topRight}<button class="ibtn" data-a="toggleDark" data-tip="Toggle theme" aria-label="Toggle theme">${ic(effectiveDark() ? 'sun' : 'moon', 16)}</button></div></div>
     <div class="auth-c">${inner}</div>
     <div class="auth-foot" style="padding:18px;font-size:12px" ><span class="faint">© 2026 Besomoy Studio · Multi-Tenant SaaS Architecture · Terms · Privacy</span></div></div>`;
 }
@@ -30,7 +30,7 @@ export function getAvailableTenants() {
         plan: data.ws.plan || 'Custom',
         membersCount: (data.members || []).length,
         projectsCount: (data.projects || []).length,
-        color: data.ws.c || '#5A67D8',
+        color: data.ws.c || '#1d1c1a',
         icon: 'building-2',
         recommended: false,
         isDemo: false,
